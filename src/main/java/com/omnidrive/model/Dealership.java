@@ -2,12 +2,15 @@ package com.omnidrive.model;
 
 import com.omnidrive.exception.AuthenticationException;
 import com.omnidrive.exception.BlockedUserException;
+import com.omnidrive.exception.DuplicateTransactionException;
 import com.omnidrive.exception.DuplicateUserException;
 import com.omnidrive.exception.DuplicateVehicleException;
 import com.omnidrive.exception.InvalidRecoveryCodeException;
+import com.omnidrive.exception.InvalidTransactionException;
 import com.omnidrive.exception.InvalidUserDataException;
 import com.omnidrive.exception.InvalidVehicleDataException;
 import com.omnidrive.exception.TechnicalReviewRejectedException;
+import com.omnidrive.exception.VehicleUnavailableException;
 import com.omnidrive.model.enums.VehicleCondition;
 import com.omnidrive.model.enums.VehicleStatus;
 import com.omnidrive.util.EmailService;
@@ -17,6 +20,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +42,8 @@ public class Dealership implements Serializable {
     private final Map<String, Customer> customers;
     private final Map<String, Employee> employees;
     private final Map<String, PasswordRecoveryToken> recoveryTokens;
+    private final Map<String, Transaction> transactions;
+    private int transactionSequence;
     private Administrator administrator;
     private EmailService emailService;
 
@@ -50,6 +57,8 @@ public class Dealership implements Serializable {
         this.customers = new LinkedHashMap<>();
         this.employees = new LinkedHashMap<>();
         this.recoveryTokens = new LinkedHashMap<>();
+        this.transactions = new LinkedHashMap<>();
+        this.transactionSequence = 0;
         this.emailService = new MockEmailService();
 
         // RF-20: Garantizar cuenta de Administrador raíz por defecto
@@ -409,5 +418,189 @@ public class Dealership implements Serializable {
                 throw new DuplicateUserException(username, "El nombre de usuario ya se encuentra registrado por otro empleado.");
             }
         }
+    }
+
+    // ==========================================
+    // GESTIÓN DE TRANSACCIONES COMERCIALES
+    // ==========================================
+
+    /**
+     * Genera un identificador único y secuencial para transacciones (formato TXN-%05d).
+     */
+    public synchronized String generateTransactionId() {
+        return String.format("TXN-%05d", ++transactionSequence);
+    }
+
+    /**
+     * Registra la compra de un vehículo a un cliente externo.
+     * Exige empleado activo, validación de revisión técnica si es usado y placa no duplicada.
+     */
+    public PurchaseTransaction buyVehicle(Employee employee, Customer customer, Vehicle vehicle,
+                                          double amount, VehicleStatus initialStatus, Instant timestamp)
+            throws BlockedUserException, DuplicateVehicleException, TechnicalReviewRejectedException,
+                   InvalidTransactionException, InvalidVehicleDataException {
+        if (employee == null) {
+            throw new InvalidTransactionException("El empleado responsable no puede ser nulo.");
+        }
+        if (employee.isBlocked()) {
+            throw new BlockedUserException("El empleado " + employee.getUsername() + " está bloqueado y no puede registrar compras.");
+        }
+        if (customer == null) {
+            throw new InvalidTransactionException("El cliente vendedor no puede ser nulo.");
+        }
+        if (vehicle == null) {
+            throw new InvalidTransactionException("El vehículo objeto de compra no puede ser nulo.");
+        }
+        if (vehicles.containsKey(vehicle.getPlate())) {
+            throw new DuplicateVehicleException(vehicle.getPlate());
+        }
+        if (initialStatus != VehicleStatus.AVAILABLE_FOR_SALE && initialStatus != VehicleStatus.AVAILABLE_FOR_RENT) {
+            throw new InvalidTransactionException("El estado inicial tras la compra debe ser AVAILABLE_FOR_SALE o AVAILABLE_FOR_RENT.");
+        }
+
+        // Validación de revisión técnica si es usado
+        if (vehicle.getCondition() == VehicleCondition.USED && !vehicle.isTechnicalReviewApproved()) {
+            throw new TechnicalReviewRejectedException("No se puede comprar el vehículo usado " + vehicle.getPlate() + " sin revisión técnica aprobada.");
+        }
+
+        vehicle.setStatus(initialStatus);
+        vehicles.put(vehicle.getPlate(), vehicle);
+
+        String txnId = generateTransactionId();
+        Instant txnTime = timestamp != null ? timestamp : Instant.now();
+        PurchaseTransaction transaction = new PurchaseTransaction(txnId, employee, customer, vehicle, amount, txnTime, initialStatus);
+        transactions.put(transaction.getId(), transaction);
+        return transaction;
+    }
+
+    /**
+     * Registra la venta de un vehículo a un cliente.
+     * Exige empleado activo, que el vehículo esté en AVAILABLE_FOR_SALE y conmuta su estado a SOLD.
+     */
+    public SaleTransaction sellVehicle(Employee employee, Customer customer, String plate,
+                                       double amount, Instant timestamp)
+            throws BlockedUserException, VehicleUnavailableException, InvalidTransactionException {
+        if (employee == null) {
+            throw new InvalidTransactionException("El empleado responsable no puede ser nulo.");
+        }
+        if (employee.isBlocked()) {
+            throw new BlockedUserException("El empleado " + employee.getUsername() + " está bloqueado y no puede registrar ventas.");
+        }
+        if (customer == null) {
+            throw new InvalidTransactionException("El cliente comprador no puede ser nulo.");
+        }
+        if (plate == null || plate.isBlank()) {
+            throw new InvalidTransactionException("La placa del vehículo no puede ser nula ni vacía.");
+        }
+
+        Vehicle vehicle = findVehicleByPlate(plate);
+        if (vehicle == null) {
+            throw new VehicleUnavailableException("Vehículo no encontrado con placa: " + plate);
+        }
+        if (vehicle.getStatus() != VehicleStatus.AVAILABLE_FOR_SALE) {
+            throw new VehicleUnavailableException("El vehículo con placa " + plate + " no está disponible para venta. Estado actual: " + vehicle.getStatus());
+        }
+
+        String txnId = generateTransactionId();
+        Instant txnTime = timestamp != null ? timestamp : Instant.now();
+        SaleTransaction transaction = new SaleTransaction(txnId, employee, customer, vehicle, amount, txnTime);
+        vehicle.setStatus(VehicleStatus.SOLD);
+        transactions.put(transaction.getId(), transaction);
+        return transaction;
+    }
+
+    /**
+     * Registra el alquiler de un vehículo a un cliente.
+     * Exige empleado activo, que el vehículo esté en AVAILABLE_FOR_RENT, fechas consistentes,
+     * calcula la tarifa total y conmuta el estado a RENTED.
+     */
+    public RentalTransaction rentVehicle(Employee employee, Customer customer, String plate,
+                                         LocalDate startDate, LocalDate endDate, int rentalDays,
+                                         Instant timestamp)
+            throws BlockedUserException, VehicleUnavailableException, InvalidTransactionException {
+        if (employee == null) {
+            throw new InvalidTransactionException("El empleado responsable no puede ser nulo.");
+        }
+        if (employee.isBlocked()) {
+            throw new BlockedUserException("El empleado " + employee.getUsername() + " está bloqueado y no puede registrar alquileres.");
+        }
+        if (customer == null) {
+            throw new InvalidTransactionException("El cliente arrendatario no puede ser nulo.");
+        }
+        if (plate == null || plate.isBlank()) {
+            throw new InvalidTransactionException("La placa del vehículo no puede ser nula ni vacía.");
+        }
+
+        Vehicle vehicle = findVehicleByPlate(plate);
+        if (vehicle == null) {
+            throw new VehicleUnavailableException("Vehículo no encontrado con placa: " + plate);
+        }
+        if (vehicle.getStatus() != VehicleStatus.AVAILABLE_FOR_RENT) {
+            throw new VehicleUnavailableException("El vehículo con placa " + plate + " no está disponible para alquiler. Estado actual: " + vehicle.getStatus());
+        }
+
+        String txnId = generateTransactionId();
+        Instant txnTime = timestamp != null ? timestamp : Instant.now();
+        RentalTransaction transaction = new RentalTransaction(txnId, employee, customer, vehicle, txnTime, startDate, endDate, rentalDays);
+        vehicle.setStatus(VehicleStatus.RENTED);
+        transactions.put(transaction.getId(), transaction);
+        return transaction;
+    }
+
+    /**
+     * Registra la devolución de un vehículo alquilado, retornando su estado a AVAILABLE_FOR_RENT.
+     * Exige que el vehículo se encuentre actualmente en estado RENTED.
+     */
+    public Vehicle returnRentedVehicle(String plate)
+            throws VehicleUnavailableException, InvalidTransactionException {
+        if (plate == null || plate.isBlank()) {
+            throw new InvalidTransactionException("La placa del vehículo devuelto no puede ser nula ni vacía.");
+        }
+
+        Vehicle vehicle = findVehicleByPlate(plate);
+        if (vehicle == null) {
+            throw new VehicleUnavailableException("Vehículo no encontrado con placa: " + plate);
+        }
+        if (vehicle.getStatus() != VehicleStatus.RENTED) {
+            throw new VehicleUnavailableException("El vehículo con placa " + plate + " no se encuentra en arriendo. Estado actual: " + vehicle.getStatus());
+        }
+
+        vehicle.setStatus(VehicleStatus.AVAILABLE_FOR_RENT);
+        return vehicle;
+    }
+
+    public Transaction findTransactionById(String id) {
+        if (id == null || id.isBlank()) {
+            return null;
+        }
+        return transactions.get(id.trim());
+    }
+
+    public List<Transaction> getAllTransactions() {
+        return Collections.unmodifiableList(new ArrayList<>(transactions.values()));
+    }
+
+    public List<Transaction> getTransactionsByEmployee(String employeeId) {
+        if (employeeId == null || employeeId.isBlank()) {
+            return Collections.emptyList();
+        }
+        List<Transaction> result = new ArrayList<>();
+        for (Transaction txn : transactions.values()) {
+            if (txn.getEmployee().getId().equals(employeeId.trim())) {
+                result.add(txn);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    public void registerTransaction(Transaction transaction)
+            throws DuplicateTransactionException, InvalidTransactionException {
+        if (transaction == null) {
+            throw new InvalidTransactionException("La transacción a registrar no puede ser nula.");
+        }
+        if (transactions.containsKey(transaction.getId())) {
+            throw new DuplicateTransactionException("Transacción duplicada: " + transaction.getId());
+        }
+        transactions.put(transaction.getId(), transaction);
     }
 }
