@@ -6,6 +6,7 @@ import com.omnidrive.exception.DuplicateTransactionException;
 import com.omnidrive.exception.DuplicateUserException;
 import com.omnidrive.exception.DuplicateVehicleException;
 import com.omnidrive.exception.InvalidRecoveryCodeException;
+import com.omnidrive.exception.InvalidReportDateRangeException;
 import com.omnidrive.exception.InvalidTransactionException;
 import com.omnidrive.exception.InvalidUserDataException;
 import com.omnidrive.exception.InvalidVehicleDataException;
@@ -21,6 +22,7 @@ import java.io.Serializable;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -602,5 +604,66 @@ public class Dealership implements Serializable {
             throw new DuplicateTransactionException("Transacción duplicada: " + transaction.getId());
         }
         transactions.put(transaction.getId(), transaction);
+    }
+
+    // ==========================================
+    // REPORTES GERENCIALES Y MÉTRICAS
+    // ==========================================
+
+    /**
+     * Genera un reporte gerencial consolidado con las métricas y transacciones del empleado
+     * dentro de un intervalo temporal cerrado [startInstant, endInstant].
+     * Permite auditar tanto empleados activos como empleados bloqueados.
+     */
+    public EmployeeReport generateEmployeeReport(String employeeId, Instant startInstant, Instant endInstant)
+            throws InvalidUserDataException, InvalidReportDateRangeException {
+        if (employeeId == null || employeeId.isBlank()) {
+            throw new InvalidUserDataException("El identificador del empleado no puede ser nulo ni estar vacío.");
+        }
+
+        Employee employee = employees.get(employeeId.trim());
+        if (employee == null) {
+            throw new InvalidUserDataException("Empleado no encontrado con identificador: " + employeeId);
+        }
+
+        if (startInstant == null || endInstant == null) {
+            throw new InvalidReportDateRangeException("Las fechas de inicio y fin del reporte no pueden ser nulas.");
+        }
+        if (startInstant.isAfter(endInstant)) {
+            throw new InvalidReportDateRangeException("La fecha de inicio (" + startInstant +
+                    ") no puede ser posterior a la fecha de fin (" + endInstant + ").");
+        }
+
+        List<Transaction> matchingTransactions = new ArrayList<>();
+        for (Transaction txn : transactions.values()) {
+            if (txn.getEmployee().getId().equals(employee.getId())) {
+                Instant t = txn.getTimestamp();
+                if (!t.isBefore(startInstant) && !t.isAfter(endInstant)) {
+                    matchingTransactions.add(txn);
+                }
+            }
+        }
+
+        return new EmployeeReport(employee, startInstant, endInstant, Instant.now(), matchingTransactions);
+    }
+
+    /**
+     * Sobrecarga de conveniencia que genera un reporte utilizando fechas locales (LocalDate),
+     * abarcando desde las 00:00:00 UTC de startDate hasta las 23:59:59.999999999 UTC de endDate.
+     */
+    public EmployeeReport generateEmployeeReport(String employeeId, LocalDate startDate, LocalDate endDate)
+            throws InvalidUserDataException, InvalidReportDateRangeException {
+        if (startDate == null || endDate == null) {
+            throw new InvalidReportDateRangeException("Las fechas de inicio y fin del reporte no pueden ser nulas.");
+        }
+        if (startDate.isAfter(endDate)) {
+            throw new InvalidReportDateRangeException("La fecha de inicio (" + startDate +
+                    ") no puede ser posterior a la fecha de fin (" + endDate + ").");
+        }
+
+        Instant startInstant = startDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant endInstant = endDate.atTime(23, 59, 59, 999_999_999).toInstant(ZoneOffset.UTC);
+
+        return generateEmployeeReport(employeeId, startInstant, endInstant);
     }
 }
