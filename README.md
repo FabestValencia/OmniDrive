@@ -47,15 +47,11 @@ Sistema de información de escritorio desarrollado en **Java 21 LTS** y **JavaFX
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 OmniDrive/
-├── pom.xml
-├── README.md
-├── AGENTS.md
-├── MEMORY.md
-├── data/                                 # Almacén de persistencia local (.dat)
+├── pom.xml                               
 ├── specs/                                # Especificaciones y planes de desarrollo
 │   ├── 001-vehicle-hierarchy/
 │   ├── 002-actors-and-auth/
@@ -82,39 +78,43 @@ OmniDrive/
 
 ---
 
-## ⚙️ Requisitos Previos
+## Requisitos Previos
 
 * **JDK:** Java 21 LTS o superior instalado (`java -version`).
 * **Maven:** Apache Maven 3.8+ instalado (`mvn -version`).
 
 ---
 
-## 🏁 Instalación y Ejecución
+## Instalación y Ejecución
 
 1. **Clonar el repositorio:**
+
    ```powershell
    git clone https://github.com/FabestValencia/OmniDrive.git
    cd OmniDrive
    ```
 
 2. **Compilar el proyecto:**
+
    ```powershell
    mvn clean compile
    ```
 
 3. **Ejecutar la suite completa de pruebas:**
+
    ```powershell
    mvn test
    ```
 
 4. **Iniciar la aplicación (JavaFX):**
+
    ```powershell
    mvn javafx:run
    ```
 
 ---
 
-## 🔑 Credenciales Iniciales
+## Credenciales Iniciales
 
 El sistema realiza arranque en frío garantizando la existencia de una cuenta de Administrador por defecto:
 
@@ -124,6 +124,6 @@ El sistema realiza arranque en frío garantizando la existencia de una cuenta de
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto ha sido desarrollado con fines académicos y de demostración técnica de buenas prácticas de programación orientada a objetos (POO), patrones de arquitectura limpia y desarrollo guiado por pruebas (TDD).
