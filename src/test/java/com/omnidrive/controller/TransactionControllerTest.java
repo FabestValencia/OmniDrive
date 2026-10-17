@@ -225,4 +225,45 @@ class TransactionControllerTest {
         assertNotNull(AppContext.getDealership().findVehicleByPlate("USD-888"), "El vehículo debe registrarse");
         assertEquals(1, AppContext.getDealership().getAllTransactions().size());
     }
+
+    @Test
+    @DisplayName("Debe resaltar campos con error visual al fallar validación de compra")
+    void testProcessBuyValidationFailureHighlightsFields() {
+        TransactionController controller = createControllerWithUI();
+
+        controller.getCmbBuyEmployee().setValue(employee);
+        controller.getCmbBuyCustomer().setValue(customer);
+        controller.getTxtBuyPlate().setText("INVALID_PLATE");
+        controller.getTxtBuyBrand().setText("M"); // Muy corto
+        controller.getTxtBuyYear().setText("-2020");
+        controller.getTxtBuyCylinder().setText("-500");
+        controller.getTxtBuyAmount().setText("-1000");
+
+        boolean result = controller.processBuy();
+
+        assertFalse(result);
+        assertTrue(controller.getTxtBuyPlate().getStyleClass().contains("text-field-error"));
+        assertTrue(controller.getTxtBuyBrand().getStyleClass().contains("text-field-error"));
+        assertTrue(controller.getTxtBuyYear().getStyleClass().contains("text-field-error"));
+        assertTrue(controller.getTxtBuyCylinder().getStyleClass().contains("text-field-error"));
+        assertTrue(controller.getTxtBuyAmount().getStyleClass().contains("text-field-error"));
+    }
+
+    @Test
+    @DisplayName("Debe resaltar campo de monto con error visual al fallar validación de venta")
+    void testProcessSaleValidationFailureHighlightsField() throws Exception {
+        Sedan vehicle = createSaleVehicle("VNT-200");
+        AppContext.getDealership().registerVehicle(vehicle);
+
+        TransactionController controller = createControllerWithUI();
+        controller.getCmbSaleEmployee().setValue(employee);
+        controller.getCmbSaleCustomer().setValue(customer);
+        controller.getCmbSaleVehicle().setValue(vehicle);
+        controller.getTxtSaleAmount().setText("-50000");
+
+        boolean result = controller.processSale();
+
+        assertFalse(result);
+        assertTrue(controller.getTxtSaleAmount().getStyleClass().contains("text-field-error"));
+    }
 }

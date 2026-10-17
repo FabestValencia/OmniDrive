@@ -5,6 +5,8 @@ import com.omnidrive.exception.OmniDriveException;
 import com.omnidrive.model.Customer;
 import com.omnidrive.model.Dealership;
 import com.omnidrive.util.AlertUtil;
+import com.omnidrive.validation.InputValidator;
+import com.omnidrive.validation.ValidationResult;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -171,8 +173,28 @@ public class CustomerManagementController {
         }
     }
 
+    private void setFieldError(TextField field, boolean hasError) {
+        if (field == null) return;
+        if (hasError) {
+            if (!field.getStyleClass().contains("text-field-error")) {
+                field.getStyleClass().add("text-field-error");
+            }
+        } else {
+            field.getStyleClass().remove("text-field-error");
+        }
+    }
+
+    private void clearFieldErrors() {
+        setFieldError(txtId, false);
+        setFieldError(txtFirstName, false);
+        setFieldError(txtLastName, false);
+        setFieldError(txtPhone, false);
+        setFieldError(txtEmail, false);
+    }
+
     public void resetForm() {
         this.selectedCustomer = null;
+        clearFieldErrors();
         if (txtId != null) {
             txtId.clear();
             txtId.setDisable(false);
@@ -208,6 +230,39 @@ public class CustomerManagementController {
         String phone = txtPhone != null ? txtPhone.getText() : "";
         String email = txtEmail != null ? txtEmail.getText() : "";
 
+        ValidationResult idRes = InputValidator.validateId(id);
+        ValidationResult fnRes = InputValidator.validateName(firstName, "Nombres");
+        ValidationResult lnRes = InputValidator.validateName(lastName, "Apellidos");
+        ValidationResult phRes = InputValidator.validatePhone(phone);
+        ValidationResult emRes = InputValidator.validateEmail(email);
+
+        setFieldError(txtId, idRes.isInvalid());
+        setFieldError(txtFirstName, fnRes.isInvalid());
+        setFieldError(txtLastName, lnRes.isInvalid());
+        setFieldError(txtPhone, phRes.isInvalid());
+        setFieldError(txtEmail, emRes.isInvalid());
+
+        if (idRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", idRes.getFirstErrorMessage());
+            return false;
+        }
+        if (fnRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", fnRes.getFirstErrorMessage());
+            return false;
+        }
+        if (lnRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", lnRes.getFirstErrorMessage());
+            return false;
+        }
+        if (phRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", phRes.getFirstErrorMessage());
+            return false;
+        }
+        if (emRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", emRes.getFirstErrorMessage());
+            return false;
+        }
+
         try {
             Customer newCustomer = new Customer(id, firstName, lastName, phone, email);
             AppContext.getDealership().registerCustomer(newCustomer);
@@ -232,6 +287,33 @@ public class CustomerManagementController {
         String lastName = txtLastName != null ? txtLastName.getText() : "";
         String phone = txtPhone != null ? txtPhone.getText() : "";
         String email = txtEmail != null ? txtEmail.getText() : "";
+
+        ValidationResult fnRes = InputValidator.validateName(firstName, "Nombres");
+        ValidationResult lnRes = InputValidator.validateName(lastName, "Apellidos");
+        ValidationResult phRes = InputValidator.validatePhone(phone);
+        ValidationResult emRes = InputValidator.validateEmail(email);
+
+        setFieldError(txtFirstName, fnRes.isInvalid());
+        setFieldError(txtLastName, lnRes.isInvalid());
+        setFieldError(txtPhone, phRes.isInvalid());
+        setFieldError(txtEmail, emRes.isInvalid());
+
+        if (fnRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", fnRes.getFirstErrorMessage());
+            return false;
+        }
+        if (lnRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", lnRes.getFirstErrorMessage());
+            return false;
+        }
+        if (phRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", phRes.getFirstErrorMessage());
+            return false;
+        }
+        if (emRes.isInvalid()) {
+            AlertUtil.showWarning("Validación de Cliente", emRes.getFirstErrorMessage());
+            return false;
+        }
 
         try {
             AppContext.getDealership().updateCustomer(id, firstName, lastName, phone, email);

@@ -5,6 +5,8 @@ import com.omnidrive.exception.OmniDriveException;
 import com.omnidrive.model.*;
 import com.omnidrive.model.enums.*;
 import com.omnidrive.util.AlertUtil;
+import com.omnidrive.validation.InputValidator;
+import com.omnidrive.validation.ValidationResult;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -15,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -114,6 +117,7 @@ public class TransactionController {
         setupStringConverters();
         populateCombos();
         loadHistoryTable();
+        attachErrorClearingListeners();
     }
 
     private void setupHistoryColumns() {
@@ -287,26 +291,79 @@ public class TransactionController {
         }
     }
 
+    private void setFieldError(TextField field, boolean hasError) {
+        if (field == null) return;
+        if (hasError) {
+            if (!field.getStyleClass().contains("text-field-error")) {
+                field.getStyleClass().add("text-field-error");
+            }
+        } else {
+            field.getStyleClass().remove("text-field-error");
+        }
+    }
+
+    private void attachErrorClearingListeners() {
+        TextField[] fields = {txtBuyPlate, txtBuyBrand, txtBuyYear, txtBuyCylinder, txtBuyAmount, txtSaleAmount, txtRentalDays};
+        for (TextField tf : fields) {
+            if (tf != null) {
+                tf.textProperty().addListener((obs, oldV, newV) -> setFieldError(tf, false));
+            }
+        }
+    }
+
     // --- ACCIONES DE NEGOCIO ---
 
     public boolean processBuy() {
         Employee employee = cmbBuyEmployee != null ? cmbBuyEmployee.getValue() : null;
         Customer customer = cmbBuyCustomer != null ? cmbBuyCustomer.getValue() : null;
+
+        List<String> errors = new ArrayList<>();
+
         String plate = txtBuyPlate != null ? txtBuyPlate.getText().trim() : "";
+        ValidationResult resPlate = InputValidator.validatePlate(plate);
+        setFieldError(txtBuyPlate, !resPlate.isValid());
+        if (!resPlate.isValid()) errors.add(resPlate.getFirstErrorMessage());
+
         String brand = txtBuyBrand != null ? txtBuyBrand.getText().trim() : "";
-        String yearStr = txtBuyYear != null ? txtBuyYear.getText().trim() : "2020";
-        String cylinderStr = txtBuyCylinder != null ? txtBuyCylinder.getText().trim() : "1600";
+        ValidationResult resBrand = InputValidator.validateName(brand, "Marca");
+        setFieldError(txtBuyBrand, !resBrand.isValid());
+        if (!resBrand.isValid()) errors.add(resBrand.getFirstErrorMessage());
+
+        String yearStr = txtBuyYear != null ? txtBuyYear.getText().trim() : "";
+        ValidationResult resYear = InputValidator.parsePositiveInt(yearStr, "Año");
+        int year = 0;
+        if (resYear.isValid()) {
+            year = Integer.parseInt(yearStr);
+            ValidationResult resYearRange = InputValidator.validateModelYear(year);
+            if (!resYearRange.isValid()) resYear = resYearRange;
+        }
+        setFieldError(txtBuyYear, !resYear.isValid());
+        if (!resYear.isValid()) errors.add(resYear.getFirstErrorMessage());
+
+        String cylinderStr = txtBuyCylinder != null ? txtBuyCylinder.getText().trim() : "";
+        ValidationResult resCylinder = InputValidator.parsePositiveDouble(cylinderStr, "Cilindraje");
+        setFieldError(txtBuyCylinder, !resCylinder.isValid());
+        if (!resCylinder.isValid()) errors.add(resCylinder.getFirstErrorMessage());
+
+        String amountStr = txtBuyAmount != null ? txtBuyAmount.getText().trim() : "";
+        ValidationResult resAmount = InputValidator.parsePositiveDouble(amountStr, "Monto de Compra");
+        setFieldError(txtBuyAmount, !resAmount.isValid());
+        if (!resAmount.isValid()) errors.add(resAmount.getFirstErrorMessage());
+
+        if (!errors.isEmpty()) {
+            AlertUtil.showError("Datos de Compra Inválidos", String.join("\n", errors));
+            return false;
+        }
+
         FuelType fuel = cmbBuyFuel != null ? cmbBuyFuel.getValue() : FuelType.GASOLINE;
         TransmissionType transmission = cmbBuyTransmission != null ? cmbBuyTransmission.getValue() : TransmissionType.MANUAL;
         VehicleCondition condition = cmbBuyCondition != null ? cmbBuyCondition.getValue() : VehicleCondition.USED;
         boolean technicalReview = chkBuyTechnicalReview != null && chkBuyTechnicalReview.isSelected();
         VehicleStatus initialStatus = cmbBuyInitialStatus != null ? cmbBuyInitialStatus.getValue() : VehicleStatus.AVAILABLE_FOR_SALE;
-        String amountStr = txtBuyAmount != null ? txtBuyAmount.getText().trim() : "0";
 
         try {
-            int year = Integer.parseInt(yearStr);
-            double cylinder = Double.parseDouble(cylinderStr);
-            double amount = Double.parseDouble(amountStr);
+            double cylinder = Double.parseDouble(cylinderStr.replace(",", "."));
+            double amount = Double.parseDouble(amountStr.replace(",", "."));
 
             // Se crea el vehículo comprado
             Vehicle vehicle = new Sedan(plate, brand, year, 5, 180.0, cylinder, fuel, transmission,
@@ -319,9 +376,6 @@ public class TransactionController {
             populateCombos();
             loadHistoryTable();
             return true;
-        } catch (NumberFormatException e) {
-            AlertUtil.showError("Formato Numérico Inválido", "Por favor verifique los campos de año, cilindraje y monto.");
-            return false;
         } catch (OmniDriveException e) {
             AlertUtil.showError("Operación de Compra Rechazada", e.getMessage());
             return false;
@@ -339,18 +393,27 @@ public class TransactionController {
             return false;
         }
 
-        try {
-            double amount = amountStr.isBlank() ? vehicle.getBasePrice() : Double.parseDouble(amountStr);
+        double amount;
+        if (!amountStr.isBlank()) {
+            ValidationResult resAmount = InputValidator.parsePositiveDouble(amountStr, "Monto de Venta");
+            setFieldError(txtSaleAmount, !resAmount.isValid());
+            if (!resAmount.isValid()) {
+                AlertUtil.showError("Formato Inválido", resAmount.getFirstErrorMessage());
+                return false;
+            }
+            amount = Double.parseDouble(amountStr.replace(",", "."));
+        } else {
+            amount = vehicle.getBasePrice();
+            setFieldError(txtSaleAmount, false);
+        }
 
+        try {
             AppContext.getDealership().sellVehicle(employee, customer, vehicle.getPlate(), amount, Instant.now());
             AppContext.save();
 
             populateCombos();
             loadHistoryTable();
             return true;
-        } catch (NumberFormatException e) {
-            AlertUtil.showError("Formato Inválido", "El monto de venta debe ser un número válido.");
-            return false;
         } catch (OmniDriveException e) {
             AlertUtil.showError("Operación de Venta Rechazada", e.getMessage());
             return false;
@@ -370,20 +433,41 @@ public class TransactionController {
             return false;
         }
 
-        try {
-            int rentalDays = daysStr.isBlank() ? 1 : Integer.parseInt(daysStr);
-            if (start == null) start = LocalDate.now();
-            if (end == null) end = start.plusDays(rentalDays);
+        int rentalDays = 1;
+        if (!daysStr.isBlank()) {
+            ValidationResult resDays = InputValidator.parsePositiveInt(daysStr, "Días de Alquiler");
+            setFieldError(txtRentalDays, !resDays.isValid());
+            if (!resDays.isValid()) {
+                AlertUtil.showError("Formato Inválido", resDays.getFirstErrorMessage());
+                return false;
+            }
+            rentalDays = Integer.parseInt(daysStr);
+        } else {
+            setFieldError(txtRentalDays, false);
+        }
 
+        if (start != null && end != null) {
+            ValidationResult resRange = InputValidator.validateDateRange(start, end);
+            if (!resRange.isValid()) {
+                AlertUtil.showError("Rango de Fechas Inválido", resRange.getFirstErrorMessage());
+                return false;
+            }
+        } else if (start == null) {
+            start = LocalDate.now();
+            if (end == null) {
+                end = start.plusDays(rentalDays);
+            }
+        } else {
+            end = start.plusDays(rentalDays);
+        }
+
+        try {
             AppContext.getDealership().rentVehicle(employee, customer, vehicle.getPlate(), start, end, rentalDays, Instant.now());
             AppContext.save();
 
             populateCombos();
             loadHistoryTable();
             return true;
-        } catch (NumberFormatException e) {
-            AlertUtil.showError("Formato Inválido", "El número de días de alquiler debe ser un número entero válido.");
-            return false;
         } catch (OmniDriveException e) {
             AlertUtil.showError("Operación de Alquiler Rechazada", e.getMessage());
             return false;

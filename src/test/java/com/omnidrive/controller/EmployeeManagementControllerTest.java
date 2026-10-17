@@ -170,4 +170,28 @@ class EmployeeManagementControllerTest {
         controller.applyFilter();
         assertEquals(2, controller.getEmployeeTable().getItems().size());
     }
+
+    @Test
+    @DisplayName("Debe aplicar clase CSS text-field-error ante campos inválidos en empleado")
+    void testValidationMarksErrorStyleInEmployee() {
+        EmployeeManagementController controller = createControllerWithUI();
+        controller.getTxtId().setText("12345");
+        controller.getTxtFirstName().setText("Mario");
+        controller.getTxtLastName().setText("Calderón");
+        controller.getTxtPhone().setText("abc"); // Teléfono inválido
+        controller.getTxtEmail().setText("mario@valido.com");
+        controller.getTxtUsername().setText("mcalderon");
+        controller.getTxtPassword().setText("Secret123*");
+
+        boolean result = controller.processRegisterEmployee();
+        assertFalse(result);
+        assertTrue(controller.getTxtPhone().getStyleClass().contains("text-field-error"));
+        assertFalse(controller.getTxtId().getStyleClass().contains("text-field-error"));
+
+        // Corregir y reenviar
+        controller.getTxtPhone().setText("3005556677");
+        boolean ok = controller.processRegisterEmployee();
+        assertTrue(ok);
+        assertFalse(controller.getTxtPhone().getStyleClass().contains("text-field-error"));
+    }
 }

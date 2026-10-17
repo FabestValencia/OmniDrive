@@ -269,4 +269,32 @@ class VehicleFormDialogControllerTest {
         assertEquals(TruckType.BOX_TRUCK, trk.getTruckType());
         assertEquals(1, AppContext.getDealership().getVehicleCount());
     }
+
+    @Test
+    @DisplayName("Debe aplicar clase de error visual y rechazar registro con datos numéricos o placa inválida")
+    void testValidationFailureHighlightsFields() {
+        VehicleFormDialogController controller = createControllerWithUI();
+
+        controller.getCmbVehicleType().setValue("Sedán");
+        controller.getTxtPlate().setText("INVALID_PLATE");
+        controller.getTxtBrand().setText("Mazda");
+        controller.getTxtModelYear().setText("ABCD");
+        controller.getTxtSpeedCount().setText("6");
+        controller.getTxtMaxSpeed().setText("-200");
+        controller.getTxtCylinderCapacity().setText("2000");
+        controller.getTxtBasePrice().setText("-1000");
+
+        Vehicle created = controller.processSaveVehicle();
+
+        assertNull(created, "No debe crear vehículo con datos inválidos");
+        assertTrue(controller.getTxtPlate().getStyleClass().contains("text-field-error"),
+                "Debe marcar txtPlate con text-field-error");
+        assertTrue(controller.getTxtModelYear().getStyleClass().contains("text-field-error"),
+                "Debe marcar txtModelYear con text-field-error");
+        assertTrue(controller.getTxtMaxSpeed().getStyleClass().contains("text-field-error"),
+                "Debe marcar txtMaxSpeed con text-field-error");
+        assertTrue(controller.getTxtBasePrice().getStyleClass().contains("text-field-error"),
+                "Debe marcar txtBasePrice con text-field-error");
+        assertEquals(0, AppContext.getDealership().getVehicleCount());
+    }
 }

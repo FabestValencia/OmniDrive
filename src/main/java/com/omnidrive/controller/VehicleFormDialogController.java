@@ -5,6 +5,8 @@ import com.omnidrive.exception.OmniDriveException;
 import com.omnidrive.model.*;
 import com.omnidrive.model.enums.*;
 import com.omnidrive.util.AlertUtil;
+import com.omnidrive.validation.InputValidator;
+import com.omnidrive.validation.ValidationResult;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -16,6 +18,8 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -198,6 +202,7 @@ public class VehicleFormDialogController {
     public void initialize() {
         populateCombos();
         setupListeners();
+        attachErrorClearingListeners();
         updateFormVisibility();
         updatePreviewPhoto(null);
     }
@@ -346,29 +351,100 @@ public class VehicleFormDialogController {
         }
     }
 
-    public Vehicle processSaveVehicle() {
-        try {
-            String plate = getTrimmedText(txtPlate);
-            String brand = getTrimmedText(txtBrand);
-            int modelYear = Integer.parseInt(getTrimmedText(txtModelYear));
-            int speedCount = Integer.parseInt(getTrimmedText(txtSpeedCount));
-            double maxSpeed = Double.parseDouble(getTrimmedText(txtMaxSpeed));
-            double cylinderCapacity = Double.parseDouble(getTrimmedText(txtCylinderCapacity));
-            TransmissionType transmission = cmbTransmission != null ? cmbTransmission.getValue() : TransmissionType.AUTOMATIC;
-            FuelType fuel = cmbFuelType != null ? cmbFuelType.getValue() : FuelType.GASOLINE;
-            VehicleCondition condition = cmbCondition != null ? cmbCondition.getValue() : VehicleCondition.NEW;
-            VehicleStatus status = cmbStatus != null ? cmbStatus.getValue() : VehicleStatus.AVAILABLE_FOR_SALE;
-            double basePrice = Double.parseDouble(getTrimmedText(txtBasePrice));
-            String photoUrl = txtPhotoUrl != null ? txtPhotoUrl.getText() : null;
-            boolean isTechnicalReviewApproved = chkTechnicalReview != null && chkTechnicalReview.isSelected();
+    private void attachErrorClearingListeners() {
+        TextField[] fields = {txtPlate, txtBrand, txtModelYear, txtSpeedCount, txtMaxSpeed,
+                txtCylinderCapacity, txtBasePrice, txtAutonomyKm, txtChargingHours};
+        for (TextField tf : fields) {
+            if (tf != null) {
+                tf.textProperty().addListener((obs, oldV, newV) -> setFieldError(tf, false));
+            }
+        }
+    }
 
-            // Construcción ecológica
+    private void setFieldError(TextField field, boolean hasError) {
+        if (field == null) return;
+        if (hasError) {
+            if (!field.getStyleClass().contains("text-field-error")) {
+                field.getStyleClass().add("text-field-error");
+            }
+        } else {
+            field.getStyleClass().remove("text-field-error");
+        }
+    }
+
+    public Vehicle processSaveVehicle() {
+        List<String> errors = new ArrayList<>();
+
+        String plate = getTrimmedText(txtPlate);
+        ValidationResult resPlate = InputValidator.validatePlate(plate);
+        setFieldError(txtPlate, !resPlate.isValid());
+        if (!resPlate.isValid()) errors.add(resPlate.getFirstErrorMessage());
+
+        String brand = getTrimmedText(txtBrand);
+        ValidationResult resBrand = InputValidator.validateName(brand, "Marca");
+        setFieldError(txtBrand, !resBrand.isValid());
+        if (!resBrand.isValid()) errors.add(resBrand.getFirstErrorMessage());
+
+        ValidationResult resYear = InputValidator.parsePositiveInt(getTrimmedText(txtModelYear), "Año de Modelo");
+        int modelYear = 0;
+        if (resYear.isValid()) {
+            modelYear = Integer.parseInt(getTrimmedText(txtModelYear));
+            ValidationResult resYearRange = InputValidator.validateModelYear(modelYear);
+            if (!resYearRange.isValid()) {
+                resYear = resYearRange;
+            }
+        }
+        setFieldError(txtModelYear, !resYear.isValid());
+        if (!resYear.isValid()) errors.add(resYear.getFirstErrorMessage());
+
+        ValidationResult resSpeedCount = InputValidator.parsePositiveInt(getTrimmedText(txtSpeedCount), "Número de Cambios");
+        setFieldError(txtSpeedCount, !resSpeedCount.isValid());
+        if (!resSpeedCount.isValid()) errors.add(resSpeedCount.getFirstErrorMessage());
+
+        ValidationResult resMaxSpeed = InputValidator.parsePositiveDouble(getTrimmedText(txtMaxSpeed), "Velocidad Máxima");
+        setFieldError(txtMaxSpeed, !resMaxSpeed.isValid());
+        if (!resMaxSpeed.isValid()) errors.add(resMaxSpeed.getFirstErrorMessage());
+
+        ValidationResult resCylinder = InputValidator.parsePositiveDouble(getTrimmedText(txtCylinderCapacity), "Cilindraje");
+        setFieldError(txtCylinderCapacity, !resCylinder.isValid());
+        if (!resCylinder.isValid()) errors.add(resCylinder.getFirstErrorMessage());
+
+        ValidationResult resPrice = InputValidator.parsePositiveDouble(getTrimmedText(txtBasePrice), "Precio Base");
+        setFieldError(txtBasePrice, !resPrice.isValid());
+        if (!resPrice.isValid()) errors.add(resPrice.getFirstErrorMessage());
+
+        FuelType fuel = cmbFuelType != null ? cmbFuelType.getValue() : FuelType.GASOLINE;
+        if (fuel == FuelType.ELECTRIC) {
+            ValidationResult resAutonomy = InputValidator.parsePositiveDouble(getTrimmedText(txtAutonomyKm), "Autonomía (km)");
+            setFieldError(txtAutonomyKm, !resAutonomy.isValid());
+            if (!resAutonomy.isValid()) errors.add(resAutonomy.getFirstErrorMessage());
+
+            ValidationResult resCharge = InputValidator.parsePositiveDouble(getTrimmedText(txtChargingHours), "Tiempo de Carga (horas)");
+            setFieldError(txtChargingHours, !resCharge.isValid());
+            if (!resCharge.isValid()) errors.add(resCharge.getFirstErrorMessage());
+        }
+
+        if (!errors.isEmpty()) {
+            AlertUtil.showError("Datos de Vehículo Inválidos", String.join("\n", errors));
+            return null;
+        }
+
+        try {
             ElectricDetails electricDetails = null;
             if (fuel == FuelType.ELECTRIC) {
-                double autonomy = Double.parseDouble(getTrimmedText(txtAutonomyKm));
-                double chargingHours = Double.parseDouble(getTrimmedText(txtChargingHours));
+                double autonomy = Double.parseDouble(getTrimmedText(txtAutonomyKm).replace(",", "."));
+                double chargingHours = Double.parseDouble(getTrimmedText(txtChargingHours).replace(",", "."));
                 electricDetails = new ElectricDetails(autonomy, chargingHours);
             }
+            int speedCount = Integer.parseInt(getTrimmedText(txtSpeedCount));
+            double maxSpeed = Double.parseDouble(getTrimmedText(txtMaxSpeed).replace(",", "."));
+            double cylinderCapacity = Double.parseDouble(getTrimmedText(txtCylinderCapacity).replace(",", "."));
+            TransmissionType transmission = cmbTransmission != null ? cmbTransmission.getValue() : TransmissionType.AUTOMATIC;
+            VehicleCondition condition = cmbCondition != null ? cmbCondition.getValue() : VehicleCondition.NEW;
+            VehicleStatus status = cmbStatus != null ? cmbStatus.getValue() : VehicleStatus.AVAILABLE_FOR_SALE;
+            double basePrice = Double.parseDouble(getTrimmedText(txtBasePrice).replace(",", "."));
+            String photoUrl = txtPhotoUrl != null ? txtPhotoUrl.getText() : null;
+            boolean isTechnicalReviewApproved = chkTechnicalReview != null && chkTechnicalReview.isSelected();
 
             HybridDetails hybridDetails = null;
             if (fuel == FuelType.HYBRID) {
@@ -391,9 +467,6 @@ public class VehicleFormDialogController {
 
             closeDialog();
             return createdVehicle;
-        } catch (NumberFormatException e) {
-            AlertUtil.showError("Formato de Número Inválido", "Por favor verifique que los campos numéricos (año, velocidad, precio, capacidad) contengan valores válidos.");
-            return null;
         } catch (OmniDriveException e) {
             AlertUtil.showError("Error al Registrar Vehículo", e.getMessage());
             return null;
@@ -470,19 +543,23 @@ public class VehicleFormDialogController {
     }
 
     private int getInt(TextField tf, int defaultVal) {
-        try {
-            return tf != null && !tf.getText().isBlank() ? Integer.parseInt(tf.getText().trim()) : defaultVal;
-        } catch (NumberFormatException e) {
-            return defaultVal;
+        if (tf != null && tf.getText() != null && !tf.getText().isBlank()) {
+            ValidationResult res = InputValidator.parsePositiveInt(tf.getText(), "Campo");
+            if (res.isValid()) {
+                return Integer.parseInt(tf.getText().trim());
+            }
         }
+        return defaultVal;
     }
 
     private double getDouble(TextField tf, double defaultVal) {
-        try {
-            return tf != null && !tf.getText().isBlank() ? Double.parseDouble(tf.getText().trim()) : defaultVal;
-        } catch (NumberFormatException e) {
-            return defaultVal;
+        if (tf != null && tf.getText() != null && !tf.getText().isBlank()) {
+            ValidationResult res = InputValidator.parsePositiveDouble(tf.getText(), "Campo");
+            if (res.isValid()) {
+                return Double.parseDouble(tf.getText().trim().replace(",", "."));
+            }
         }
+        return defaultVal;
     }
 
     private boolean getBool(CheckBox cb) {

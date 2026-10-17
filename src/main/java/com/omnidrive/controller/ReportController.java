@@ -8,6 +8,8 @@ import com.omnidrive.model.EmployeeReport;
 import com.omnidrive.model.Transaction;
 import com.omnidrive.model.Vehicle;
 import com.omnidrive.util.AlertUtil;
+import com.omnidrive.validation.InputValidator;
+import com.omnidrive.validation.ValidationResult;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -175,8 +177,14 @@ public class ReportController {
         LocalDate startDate = dpStartDate != null ? dpStartDate.getValue() : null;
         LocalDate endDate = dpEndDate != null ? dpEndDate.getValue() : null;
 
-        if (startDate == null || endDate == null) {
-            AlertUtil.showWarning("Validación de Fechas", "Debe especificar las fechas de inicio y fin del período.");
+        ValidationResult dateRangeResult = InputValidator.validateDateRange(startDate, endDate);
+        if (!dateRangeResult.isValid()) {
+            AlertUtil.showWarning("Validación de Fechas", dateRangeResult.getFirstErrorMessage());
+            currentReport = null;
+            resetMetricLabels();
+            if (tblReportTransactions != null) {
+                tblReportTransactions.setItems(FXCollections.emptyObservableList());
+            }
             return;
         }
 

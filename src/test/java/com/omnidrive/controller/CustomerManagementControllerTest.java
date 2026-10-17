@@ -163,4 +163,26 @@ class CustomerManagementControllerTest {
         controller.applyFilter();
         assertEquals(2, controller.getCustomerTable().getItems().size());
     }
+
+    @Test
+    @DisplayName("Debe aplicar clase CSS text-field-error ante campos inválidos en cliente")
+    void testValidationMarksErrorStyle() {
+        CustomerManagementController controller = createControllerWithUI();
+        controller.getTxtId().setText("12345");
+        controller.getTxtFirstName().setText("Laura");
+        controller.getTxtLastName().setText("Mejía");
+        controller.getTxtPhone().setText("3001234567");
+        controller.getTxtEmail().setText("correo-invalido"); // Correo sin @
+
+        boolean result = controller.processRegisterCustomer();
+        assertFalse(result);
+        assertTrue(controller.getTxtEmail().getStyleClass().contains("text-field-error"));
+        assertFalse(controller.getTxtId().getStyleClass().contains("text-field-error"));
+
+        // Corregir y reenviar
+        controller.getTxtEmail().setText("laura@valido.com");
+        boolean ok = controller.processRegisterCustomer();
+        assertTrue(ok);
+        assertFalse(controller.getTxtEmail().getStyleClass().contains("text-field-error"));
+    }
 }
