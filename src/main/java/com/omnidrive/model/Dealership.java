@@ -49,6 +49,10 @@ public class Dealership implements Serializable {
     private Administrator administrator;
     private EmailService emailService;
 
+    public Dealership() {
+        this("OmniDrive Concesionario");
+    }
+
     public Dealership(String name) {
         if (name == null || name.trim().isEmpty()) {
             this.name = "OmniDrive Concesionario";
