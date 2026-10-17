@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.omnidrive.controller.VehicleFormDialogController"
+            fitToWidth="true" prefHeight="650.0" prefWidth="760.0"
+            style="-fx-background-color: transparent; -fx-background: #f8fafc;"
+            stylesheets="@styles.css">
+
+    <content>
+        <VBox spacing="16.0" style="-fx-padding: 24px;">
+            <!-- Encabezado del Diálogo -->
+            <VBox spacing="4.0">
+                <Label text="Registro de Vehículo" styleClass="title-large" />
+                <Label text="Complete las especificaciones generales y los atributos específicos según el tipo de vehículo."
+                       styleClass="subtitle-text" />
+            </VBox>
+
+            <!-- Card 1: Selección de Tipo, Combustible y Transmisión -->
+            <VBox spacing="10.0" styleClass="card">
+                <Label text="1. Clasificación y Motorización" styleClass="title-small" />
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Tipo de Vehículo" styleClass="label-bold" />
+                        <ComboBox fx:id="cmbVehicleType" maxWidth="Infinity" styleClass="combo-box" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Combustible" styleClass="label-bold" />
+                        <ComboBox fx:id="cmbFuelType" maxWidth="Infinity" styleClass="combo-box" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Transmisión" styleClass="label-bold" />
+                        <ComboBox fx:id="cmbTransmission" maxWidth="Infinity" styleClass="combo-box" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Card 2: Especificaciones Generales -->
+            <VBox spacing="10.0" styleClass="card">
+                <Label text="2. Datos Generales de Fabricación" styleClass="title-small" />
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Placa / Identificador" styleClass="label-bold" />
+                        <TextField fx:id="txtPlate" promptText="Ej: ABC-123" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Marca" styleClass="label-bold" />
+                        <TextField fx:id="txtBrand" promptText="Ej: Toyota" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Modelo (Año)" styleClass="label-bold" />
+                        <TextField fx:id="txtModelYear" promptText="Ej: 2024" styleClass="text-field" />
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Número de Cambios" styleClass="label-bold" />
+                        <TextField fx:id="txtSpeedCount" promptText="Ej: 6" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Velocidad Máx (km/h)" styleClass="label-bold" />
+                        <TextField fx:id="txtMaxSpeed" promptText="Ej: 210" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Cilindraje (cc)" styleClass="label-bold" />
+                        <TextField fx:id="txtCylinderCapacity" promptText="Ej: 1800" styleClass="text-field" />
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Condición" styleClass="label-bold" />
+                        <ComboBox fx:id="cmbCondition" maxWidth="Infinity" styleClass="combo-box" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Estado Inicial" styleClass="label-bold" />
+                        <ComboBox fx:id="cmbStatus" maxWidth="Infinity" styleClass="combo-box" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Precio Base ($)" styleClass="label-bold" />
+                        <TextField fx:id="txtBasePrice" promptText="Ej: 85000000" styleClass="text-field" />
+                    </VBox>
+                </HBox>
+
+                <CheckBox fx:id="chkTechnicalReview" text="Revisión Técnica Previa Aprobada (Obligatoria para vehículos usados)"
+                          styleClass="label-bold" />
+            </VBox>
+
+            <!-- Card 3: Fotografía del Vehículo -->
+            <VBox spacing="10.0" styleClass="card">
+                <Label text="3. Fotografía del Vehículo" styleClass="title-small" />
+                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                    <TextField fx:id="txtPhotoUrl" promptText="Ruta de imagen en disco..." HBox.hgrow="ALWAYS" styleClass="text-field" />
+                    <Button fx:id="btnBrowsePhoto" text="Examinar..." onAction="#handleBrowsePhoto" styleClass="button-secondary" />
+                    <ImageView fx:id="imgPreview" fitHeight="70.0" fitWidth="120.0" preserveRatio="true" />
+                </HBox>
+            </VBox>
+
+            <!-- Paneles Reactivos de Combustible -->
+            <VBox fx:id="paneElectric" spacing="10.0" styleClass="card">
+                <Label text="Detalles de Vehículo Eléctrico" styleClass="title-small" />
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Autonomía (km)" styleClass="label-bold" />
+                        <TextField fx:id="txtAutonomyKm" promptText="Ej: 450" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Tiempo Promedio de Carga (h)" styleClass="label-bold" />
+                        <TextField fx:id="txtChargingHours" promptText="Ej: 6.5" styleClass="text-field" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <VBox fx:id="paneHybrid" spacing="10.0" styleClass="card">
+                <Label text="Detalles de Vehículo Híbrido" styleClass="title-small" />
+                <HBox spacing="20.0">
+                    <CheckBox fx:id="chkPlugIn" text="Híbrido Enchufable (Plug-in)" styleClass="label-bold" />
+                    <CheckBox fx:id="chkMildHybrid" text="Híbrido Ligero (Mild Hybrid)" styleClass="label-bold" />
+                </HBox>
+            </VBox>
+
+            <!-- Paneles Reactivos de Tipo de Vehículo -->
+            <VBox fx:id="panePassenger" spacing="10.0" styleClass="card">
+                <Label text="Configuración de Pasajeros y Seguridad" styleClass="title-small" />
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Número de Pasajeros" styleClass="label-bold" />
+                        <TextField fx:id="txtPassengerCount" promptText="Ej: 5" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Número de Puertas" styleClass="label-bold" />
+                        <TextField fx:id="txtDoorsCount" promptText="Ej: 4" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Bolsas de Aire" styleClass="label-bold" />
+                        <TextField fx:id="txtAirbagsCount" promptText="Ej: 6" styleClass="text-field" />
+                    </VBox>
+                </HBox>
+                <HBox spacing="20.0">
+                    <CheckBox fx:id="chkAirConditioning" text="Aire Acondicionado" selected="true" />
+                    <CheckBox fx:id="chkReverseCamera" text="Cámara de Reversa" selected="true" />
+                    <CheckBox fx:id="chkAbs" text="Frenos ABS" selected="true" />
+                </HBox>
+            </VBox>
+
+            <VBox fx:id="paneTrunk" spacing="4.0" styleClass="card">
+                <Label text="Capacidad del Maletero (Litros)" styleClass="label-bold" />
+                <TextField fx:id="txtTrunkCapacity" promptText="Ej: 470" styleClass="text-field" />
+            </VBox>
+
+            <VBox fx:id="paneSedanSuv" spacing="10.0" styleClass="card">
+                <Label text="Asistencias a la Conducción (Sedán y SUV)" styleClass="title-small" />
+                <FlowPane hgap="20.0" vgap="10.0">
+                    <CheckBox fx:id="chkCruiseControl" text="Velocidad de Crucero" />
+                    <CheckBox fx:id="chkCollisionSensors" text="Sensores de Colisión" />
+                    <CheckBox fx:id="chkCrossTraffic" text="Sensor de Tráfico Cruzado" />
+                    <CheckBox fx:id="chkLaneAssist" text="Asistente de Permanencia en Carril" />
+                </FlowPane>
+            </VBox>
+
+            <VBox fx:id="paneFourByFour" spacing="4.0" styleClass="card">
+                <CheckBox fx:id="chkFourByFour" text="Tracción 4x4 Integral" styleClass="label-bold" />
+            </VBox>
+
+            <VBox fx:id="panePickUp" spacing="4.0" styleClass="card">
+                <Label text="Capacidad de la Caja de Carga (kg)" styleClass="label-bold" />
+                <TextField fx:id="txtBedCapacity" promptText="Ej: 1000" styleClass="text-field" />
+            </VBox>
+
+            <VBox fx:id="paneSportsCar" spacing="10.0" styleClass="card">
+                <Label text="Rendimiento Deportivo de Alto Desempeño" styleClass="title-small" />
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Caballos de Fuerza (HP)" styleClass="label-bold" />
+                        <TextField fx:id="txtHorsepower" promptText="Ej: 450" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="0 a 100 km/h (segundos)" styleClass="label-bold" />
+                        <TextField fx:id="txtZeroToHundred" promptText="Ej: 3.5" styleClass="text-field" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <VBox fx:id="paneBus" spacing="10.0" styleClass="card">
+                <Label text="Especificaciones Técnicas del Bus" styleClass="title-small" />
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Número de Ejes" styleClass="label-bold" />
+                        <TextField fx:id="txtAxleCount" promptText="Ej: 3" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Salidas de Emergencia" styleClass="label-bold" />
+                        <TextField fx:id="txtEmergencyExits" promptText="Ej: 2" styleClass="text-field" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <VBox fx:id="paneTruck" spacing="10.0" styleClass="card">
+                <Label text="Especificaciones de Carga Pesada (Camión)" styleClass="title-small" />
+                <HBox spacing="12.0">
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Capacidad de Carga (Toneladas)" styleClass="label-bold" />
+                        <TextField fx:id="txtLoadCapacityTons" promptText="Ej: 25.0" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Número de Ejes" styleClass="label-bold" />
+                        <TextField fx:id="txtTruckAxles" promptText="Ej: 3" styleClass="text-field" />
+                    </VBox>
+                    <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                        <Label text="Tipo de Camión" styleClass="label-bold" />
+                        <ComboBox fx:id="cmbTruckType" maxWidth="Infinity" styleClass="combo-box" />
+                    </VBox>
+                </HBox>
+                <HBox spacing="20.0">
+                    <CheckBox fx:id="chkTruckAirBrakes" text="Frenos de Aire" selected="true" />
+                    <CheckBox fx:id="chkTruckAirConditioning" text="Aire Acondicionado" selected="true" />
+                    <CheckBox fx:id="chkTruckAbs" text="Frenos ABS" selected="true" />
+                </HBox>
+            </VBox>
+
+            <!-- Botones de Acción -->
+            <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                <Button fx:id="btnCancel" text="Cancelar" onAction="#handleCancel"
+                        styleClass="button-secondary" prefWidth="120.0" />
+                <Button fx:id="btnSave" text="Registrar Vehículo" onAction="#handleSave"
+                        styleClass="button-primary" prefWidth="180.0" />
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>

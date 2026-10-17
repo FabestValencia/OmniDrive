@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.omnidrive.controller.EmployeeManagementController"
+            fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f8fafc;"
+            stylesheets="@styles.css">
+
+    <content>
+        <VBox spacing="20.0" style="-fx-padding: 10px;">
+            <!-- Encabezado de Sección -->
+            <VBox spacing="4.0">
+                <Label text="Gestión de Empleados" styleClass="title-large" />
+                <Label text="Administración de colaboradores, registro de nuevas cuentas y bloqueo permanente de acceso."
+                       styleClass="subtitle-text" />
+            </VBox>
+
+            <!-- Disposición Horizontal Principal: Tabla a la izquierda, Formulario a la derecha -->
+            <HBox spacing="20.0" alignment="TOP_LEFT">
+                <!-- Columna Izquierda: Búsqueda y Tabla de Empleados -->
+                <VBox spacing="12.0" HBox.hgrow="ALWAYS">
+                    <!-- Barra de Búsqueda -->
+                    <HBox alignment="CENTER_LEFT" spacing="12.0">
+                        <TextField fx:id="txtSearch" promptText="🔍 Buscar colaborador por cédula, nombre o usuario..."
+                                   HBox.hgrow="ALWAYS" styleClass="text-field" />
+                    </HBox>
+
+                    <!-- Tabla de Empleados -->
+                    <TableView fx:id="employeeTable" prefHeight="480.0" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <columns>
+                            <TableColumn fx:id="colId" text="Cédula" prefWidth="110.0" />
+                            <TableColumn fx:id="colFullName" text="Nombre Completo" prefWidth="160.0" />
+                            <TableColumn fx:id="colPhone" text="Teléfono" prefWidth="110.0" />
+                            <TableColumn fx:id="colEmail" text="Correo Electrónico" prefWidth="170.0" />
+                            <TableColumn fx:id="colUsername" text="Usuario" prefWidth="100.0" />
+                            <TableColumn fx:id="colStatus" text="Estado" prefWidth="90.0" />
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+
+                <!-- Columna Derecha: Tarjeta de Formulario de Registro y Edición -->
+                <VBox spacing="14.0" styleClass="card" prefWidth="360.0" minWidth="340.0">
+                    <Label text="Ficha del Colaborador" styleClass="title-small" />
+
+                    <!-- Campo Cédula -->
+                    <VBox spacing="4.0">
+                        <Label text="Cédula / Identificación" styleClass="label-bold" />
+                        <TextField fx:id="txtId" promptText="Ej: 1094123456" styleClass="text-field" />
+                    </VBox>
+
+                    <!-- Nombres y Apellidos -->
+                    <HBox spacing="10.0">
+                        <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                            <Label text="Nombres" styleClass="label-bold" />
+                            <TextField fx:id="txtFirstName" promptText="Nombres" styleClass="text-field" />
+                        </VBox>
+                        <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                            <Label text="Apellidos" styleClass="label-bold" />
+                            <TextField fx:id="txtLastName" promptText="Apellidos" styleClass="text-field" />
+                        </VBox>
+                    </HBox>
+
+                    <!-- Teléfono y Correo -->
+                    <VBox spacing="4.0">
+                        <Label text="Teléfono de Contacto" styleClass="label-bold" />
+                        <TextField fx:id="txtPhone" promptText="Ej: 3001234567" styleClass="text-field" />
+                    </VBox>
+
+                    <VBox spacing="4.0">
+                        <Label text="Correo Electrónico" styleClass="label-bold" />
+                        <TextField fx:id="txtEmail" promptText="colaborador@omnidrive.com" styleClass="text-field" />
+                    </VBox>
+
+                    <!-- Credenciales de Acceso -->
+                    <HBox spacing="10.0">
+                        <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                            <Label text="Usuario" styleClass="label-bold" />
+                            <TextField fx:id="txtUsername" promptText="Usuario único" styleClass="text-field" />
+                        </VBox>
+                        <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                            <Label text="Contraseña" styleClass="label-bold" />
+                            <PasswordField fx:id="txtPassword" promptText="••••••••" styleClass="password-field" />
+                        </VBox>
+                    </HBox>
+
+                    <Region prefHeight="8.0" />
+
+                    <!-- Botones de Acción -->
+                    <HBox spacing="10.0">
+                        <Button fx:id="btnRegister" text="Registrar" onAction="#handleRegister"
+                                maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="button-primary" />
+                        <Button fx:id="btnUpdate" text="Actualizar" onAction="#handleUpdate"
+                                maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="button-primary" />
+                    </HBox>
+
+                    <HBox spacing="10.0">
+                        <Button fx:id="btnBlock" text="Bloquear Empleado" onAction="#handleBlock"
+                                maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="button-danger" />
+                        <Button fx:id="btnClear" text="Limpiar" onAction="#handleClear"
+                                maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="button-secondary" />
+                    </HBox>
+                </VBox>
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>

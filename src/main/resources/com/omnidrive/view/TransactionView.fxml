@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.omnidrive.controller.TransactionController"
+            fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f8fafc;"
+            stylesheets="@styles.css">
+
+    <content>
+        <VBox spacing="20.0" style="-fx-padding: 10px;">
+            <!-- Encabezado de Sección -->
+            <VBox spacing="4.0">
+                <Label text="Operaciones Comerciales" styleClass="title-large" />
+                <Label text="Registro de compras, ventas y arriendos con auditoría de asesor, cliente, vehículo y montos."
+                       styleClass="subtitle-text" />
+            </VBox>
+
+            <!-- Pestañas Dedicadas para cada Operación -->
+            <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="card">
+                <!-- PESTAÑA 1: COMPRA DE VEHÍCULOS -->
+                <Tab text="🛒 Compra de Vehículo">
+                    <VBox spacing="16.0" style="-fx-padding: 20px;">
+                        <Label text="Registro de Compra de Vehículo a Cliente" styleClass="title-small" />
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Asesor Responsable" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbBuyEmployee" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Cliente Vendedor" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbBuyCustomer" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Tipo de Vehículo" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbBuyVehicleType" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Placa" styleClass="label-bold" />
+                                <TextField fx:id="txtBuyPlate" promptText="Ej: COM-123" styleClass="text-field" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Marca" styleClass="label-bold" />
+                                <TextField fx:id="txtBuyBrand" promptText="Ej: Renault" styleClass="text-field" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Año / Modelo" styleClass="label-bold" />
+                                <TextField fx:id="txtBuyYear" promptText="2022" styleClass="text-field" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Cilindraje (cc)" styleClass="label-bold" />
+                                <TextField fx:id="txtBuyCylinder" promptText="1600" styleClass="text-field" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Combustible" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbBuyFuel" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Transmisión" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbBuyTransmission" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Condición" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbBuyCondition" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Destino Inicial" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbBuyInitialStatus" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Monto Pagado al Cliente ($)" styleClass="label-bold" />
+                                <TextField fx:id="txtBuyAmount" promptText="Ej: 35000000" styleClass="text-field" />
+                            </VBox>
+                        </HBox>
+
+                        <CheckBox fx:id="chkBuyTechnicalReview" text="Revisión Técnica Previa Aprobada (Obligatoria para Usados)"
+                                  styleClass="label-bold" style="-fx-text-fill: #1e40af;" />
+
+                        <Button fx:id="btnProcessBuy" text="Registrar Compra de Vehículo" onAction="#handleProcessBuy"
+                                prefWidth="250.0" styleClass="button-primary" />
+                    </VBox>
+                </Tab>
+
+                <!-- PESTAÑA 2: VENTA DE VEHÍCULOS -->
+                <Tab text="🏷️ Venta de Vehículo">
+                    <VBox spacing="16.0" style="-fx-padding: 20px;">
+                        <Label text="Registro de Venta a Cliente Final" styleClass="title-small" />
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Asesor Comercial" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbSaleEmployee" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Cliente Comprador" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbSaleCustomer" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Vehículo Disponible para Venta" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbSaleVehicle" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" prefWidth="260.0">
+                                <Label text="Monto de la Venta ($)" styleClass="label-bold" />
+                                <TextField fx:id="txtSaleAmount" promptText="Dejar vacío para precio base" styleClass="text-field" />
+                            </VBox>
+                        </HBox>
+
+                        <Button fx:id="btnProcessSale" text="Procesar Venta y Conmutar a Vendido" onAction="#handleProcessSale"
+                                prefWidth="280.0" styleClass="button-primary" />
+                    </VBox>
+                </Tab>
+
+                <!-- PESTAÑA 3: ALQUILER DE VEHÍCULOS -->
+                <Tab text="🔑 Alquiler de Vehículo">
+                    <VBox spacing="16.0" style="-fx-padding: 20px;">
+                        <Label text="Registro de Contrato de Alquiler de Vehículo" styleClass="title-small" />
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Asesor Responsable" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbRentalEmployee" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Cliente Arrendatario" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbRentalCustomer" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="14.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Vehículo Disponible para Alquiler" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbRentalVehicle" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0" prefWidth="180.0">
+                                <Label text="Fecha de Inicio" styleClass="label-bold" />
+                                <DatePicker fx:id="dpRentalStart" maxWidth="Infinity" />
+                            </VBox>
+                            <VBox spacing="4.0" prefWidth="180.0">
+                                <Label text="Fecha Estimada Fin" styleClass="label-bold" />
+                                <DatePicker fx:id="dpRentalEnd" maxWidth="Infinity" />
+                            </VBox>
+                            <VBox spacing="4.0" prefWidth="120.0">
+                                <Label text="Días Totales" styleClass="label-bold" />
+                                <TextField fx:id="txtRentalDays" promptText="1" styleClass="text-field" />
+                            </VBox>
+                        </HBox>
+
+                        <Button fx:id="btnProcessRental" text="Procesar Alquiler y Conmutar a Arrendado" onAction="#handleProcessRental"
+                                prefWidth="290.0" styleClass="button-primary" />
+                    </VBox>
+                </Tab>
+
+                <!-- PESTAÑA 4: DEVOLUCIÓN DE VEHÍCULOS -->
+                <Tab text="🔄 Devolución">
+                    <VBox spacing="16.0" style="-fx-padding: 20px;">
+                        <Label text="Recepción y Devolución de Vehículo Arrendado" styleClass="title-small" />
+                        <HBox spacing="14.0" alignment="CENTER_LEFT">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label text="Vehículo Actualmente en Arriendo" styleClass="label-bold" />
+                                <ComboBox fx:id="cmbReturnVehicle" maxWidth="Infinity" styleClass="combo-box" />
+                            </VBox>
+                            <VBox spacing="4.0">
+                                <Label text="Acción de Retorno" styleClass="label-bold" />
+                                <Button fx:id="btnProcessReturn" text="Devolver a Inventario de Alquiler" onAction="#handleProcessReturn"
+                                        prefWidth="250.0" styleClass="button-success" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </Tab>
+
+                <!-- PESTAÑA 5: HISTORIAL Y AUDITORÍA -->
+                <Tab text="📜 Historial y Auditoría">
+                    <VBox spacing="12.0" style="-fx-padding: 20px;">
+                        <Label text="Registro Cronológico de Operaciones Realizadas" styleClass="title-small" />
+                        <TableView fx:id="historyTable" prefHeight="420.0" styleClass="table-view">
+                            <columns>
+                                <TableColumn fx:id="colTxnId" text="ID Transacción" prefWidth="110.0" />
+                                <TableColumn fx:id="colTxnType" text="Operación" prefWidth="95.0" />
+                                <TableColumn fx:id="colTxnDate" text="Fecha / Hora" prefWidth="130.0" />
+                                <TableColumn fx:id="colTxnEmployee" text="Asesor" prefWidth="160.0" />
+                                <TableColumn fx:id="colTxnCustomer" text="Cliente" prefWidth="160.0" />
+                                <TableColumn fx:id="colTxnVehicle" text="Vehículo" prefWidth="180.0" />
+                                <TableColumn fx:id="colTxnAmount" text="Monto Total" prefWidth="120.0" />
+                            </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </content>
+</ScrollPane>

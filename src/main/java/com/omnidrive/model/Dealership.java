@@ -189,6 +189,17 @@ public class Dealership implements Serializable {
         return customers.size();
     }
 
+    public void updateCustomer(String id, String firstName, String lastName, String phone, String email) throws InvalidUserDataException {
+        Customer customer = findCustomerById(id);
+        if (customer == null) {
+            throw new InvalidUserDataException("No se encontró el cliente con identificación: " + id);
+        }
+        customer.setFirstName(firstName);
+        customer.setLastName(lastName);
+        customer.setPhone(phone);
+        customer.setEmail(email);
+    }
+
     public void registerEmployee(Employee employee) throws DuplicateUserException, InvalidUserDataException {
         if (employee == null) {
             throw new InvalidUserDataException("El empleado a registrar no puede ser nulo.");

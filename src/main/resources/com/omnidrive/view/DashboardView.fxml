@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.omnidrive.controller.DashboardController"
+            fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f8fafc;"
+            stylesheets="@styles.css">
+
+    <content>
+        <VBox spacing="20.0" style="-fx-padding: 10px;">
+            <!-- Tarjeta de Bienvenida -->
+            <VBox spacing="6.0" styleClass="card">
+                <Label fx:id="lblWelcome" text="¡Bienvenido al Sistema OmniDrive!" styleClass="title-large" />
+                <Label fx:id="lblUserGreeting" text="Panel de control y métricas del concesionario." styleClass="subtitle-text" />
+            </VBox>
+
+            <!-- Título de Indicadores -->
+            <Label text="Indicadores Clave del Negocio" styleClass="title-medium" />
+
+            <!-- Contenedor Flexible de Métricas (KPIs) -->
+            <FlowPane hgap="16.0" vgap="16.0">
+                <!-- KPI: Vehículos Disponibles -->
+                <VBox spacing="4.0" styleClass="metric-card" prefWidth="190.0">
+                    <Label text="VEHÍCULOS DISPONIBLES" styleClass="metric-label" />
+                    <Label fx:id="lblAvailableVehicles" text="0" styleClass="metric-value" />
+                    <Label text="Para venta o arriendo" styleClass="subtitle-text" />
+                </VBox>
+
+                <!-- KPI: Clientes Registrados -->
+                <VBox spacing="4.0" styleClass="metric-card" prefWidth="190.0">
+                    <Label text="CLIENTES ACTIVOS" styleClass="metric-label" />
+                    <Label fx:id="lblTotalCustomers" text="0" styleClass="metric-value" />
+                    <Label text="En base de datos" styleClass="subtitle-text" />
+                </VBox>
+
+                <!-- KPI: Transacciones Totales -->
+                <VBox spacing="4.0" styleClass="metric-card" prefWidth="190.0">
+                    <Label text="OPERACIONES TOTALES" styleClass="metric-label" />
+                    <Label fx:id="lblTotalTransactions" text="0" styleClass="metric-value" />
+                    <Label text="Compras, ventas, rentas" styleClass="subtitle-text" />
+                </VBox>
+
+                <!-- KPI: Vehículos en Arriendo -->
+                <VBox spacing="4.0" styleClass="metric-card" prefWidth="190.0">
+                    <Label text="EN ALQUILER" styleClass="metric-label" />
+                    <Label fx:id="lblRentedVehicles" text="0" styleClass="metric-value" />
+                    <Label text="Actualmente arrendados" styleClass="subtitle-text" />
+                </VBox>
+
+                <!-- KPI: Colaboradores Activos (Solo Admin) -->
+                <VBox fx:id="cardEmployees" spacing="4.0" styleClass="metric-card" prefWidth="190.0">
+                    <Label text="COLABORADORES ACTIVOS" styleClass="metric-label" />
+                    <Label fx:id="lblActiveEmployees" text="0" styleClass="metric-value" />
+                    <Label text="Personal habilitado" styleClass="subtitle-text" />
+                </VBox>
+            </FlowPane>
+
+            <!-- Resumen Informativo y Auditoría -->
+            <VBox spacing="8.0" styleClass="card">
+                <Label text="Información y Respaldo Operativo" styleClass="title-small" />
+                <Label text="El sistema garantiza persistencia continua en disco y estricto control de auditoría. Las compras exigen revisión técnica obligatoria para vehículos usados y las contraseñas están protegidas con cifrado SHA-256."
+                       wrapText="true" styleClass="subtitle-text" />
+            </VBox>
+        </VBox>
+    </content>
+</ScrollPane>
