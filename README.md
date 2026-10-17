@@ -4,7 +4,9 @@ Sistema de información de escritorio desarrollado en **Java 21 LTS** y **JavaFX
 
 ---
 
-## 🚀 Características Principales
+## Características Principales
+
+|
 
 1. **Gestión de Inventario Multitipo (8 Familias de Vehículos):**
    * **Sedán, Deportivo, Camioneta / SUV, Pick Up, Van, Bus, Camión y Moto**.
@@ -37,7 +39,7 @@ Sistema de información de escritorio desarrollado en **Java 21 LTS** y **JavaFX
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 * **Lenguaje:** Java 21 LTS.
 * **Interfaz Gráfica:** JavaFX 21.0.2 (`javafx-controls`, `javafx-fxml`).
