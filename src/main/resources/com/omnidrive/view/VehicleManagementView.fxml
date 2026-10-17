@@ -83,7 +83,7 @@
                     <HBox alignment="CENTER_LEFT" spacing="8.0">
                         <Label fx:id="lblDetailStatus" text="---" styleClass="label-bold" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <Label fx:id="lblDetailPrice" text="$ 0" styleClass="title-small" style="-fx-text-fill: #1e40af;" />
+                        <Label fx:id="lblDetailPrice" text="---" styleClass="title-small" style="-fx-text-fill: #1e40af;" />
                     </HBox>
 
                     <!-- Especificaciones Detalladas -->

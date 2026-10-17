@@ -208,4 +208,11 @@ class VehicleManagementControllerTest {
         controller.applyFilters();
         assertEquals(2, controller.getVehicleTable().getItems().size());
     }
+
+    @Test
+    @DisplayName("Debe cargar exitosamente VehicleManagementView.fxml desde FXMLLoader")
+    void testLoadFxmlDirectly() throws Exception {
+        javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/omnidrive/view/VehicleManagementView.fxml"));
+        assertNotNull(loader.load());
+    }
 }
